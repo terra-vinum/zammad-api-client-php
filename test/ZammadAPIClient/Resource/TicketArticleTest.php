@@ -197,10 +197,10 @@ class TicketArticleTest extends AbstractBaseTest
             }
 
             // Change a value.
-            $article_type = $created_object->getValue('type');
-            $new_article_type = ( $article_type == 'internal' ) ? 'external' : 'internal';
+            $is_internal     = $created_object->getValue('internal') ? true : false;
+            $new_is_internal = !$is_internal;
 
-            $created_object->setValue( 'type', $new_article_type );
+            $created_object->setValue( 'internal', $new_is_internal );
             $saved_object = $created_object->save();
 
             $this->assertFalse(
@@ -221,16 +221,16 @@ class TicketArticleTest extends AbstractBaseTest
 
             // Compare changed value.
             $this->assertEquals(
-                $new_article_type,
-                $created_object->getValue('type'),
+                $new_is_internal,
+                $created_object->getValue('internal') ? true : false,
                 'Changed value of object must match expected one.'
             );
 
             // Fetch object data with a fresh object to check again if value has been changed.
             $fetched_object = self::getClient()->resource( $this->resource_type )->get($created_object_id);
             $this->assertEquals(
-                $new_article_type,
-                $fetched_object->getValue('type'),
+                $new_is_internal,
+                $fetched_object->getValue('internal') ? true : false,
                 'Value of fetched object must match expected one.'
             );
         }
