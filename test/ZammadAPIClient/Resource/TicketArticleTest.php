@@ -7,7 +7,6 @@ use ZammadAPIClient\ResourceType;
 class TicketArticleTest extends AbstractBaseTest
 {
     protected $resource_type = ResourceType::TICKET_ARTICLE;
-    protected $update_field  = 'body';
 
     public function objectCreateProvider()
     {
@@ -182,6 +181,57 @@ class TicketArticleTest extends AbstractBaseTest
                 $expected_value,
                 $object->getValue($field),
                 "Value of object must match expected value (field $field)."
+            );
+        }
+    }
+
+    /**
+     * @depends testCreate
+     */
+    public function testUpdate()
+    {
+        foreach ( self::$created_objects as $created_object ) {
+            $created_object_id = $created_object->getID();
+            if ( empty( $created_object_id ) ) {
+                continue;
+            }
+
+            // Change a value.
+            $article_type = $created_object->getValue('type');
+            $new_article_type = ( $article_type == 'internal' ) ? 'external' : 'internal';
+
+            $created_object->setValue( 'type', $new_article_type );
+            $saved_object = $created_object->save();
+
+            $this->assertFalse(
+                $created_object->hasError(),
+                'Error must not be set after update of object.'
+            );
+
+            $this->assertInstanceOf(
+                $this->resource_type,
+                $saved_object
+            );
+
+            $this->assertSame(
+                $created_object,
+                $saved_object,
+                'Saving an object must return the same object again.'
+            );
+
+            // Compare changed value.
+            $this->assertEquals(
+                $new_article_type,
+                $created_object->getValue('type'),
+                'Changed value of object must match expected one.'
+            );
+
+            // Fetch object data with a fresh object to check again if value has been changed.
+            $fetched_object = self::getClient()->resource( $this->resource_type )->get($created_object_id);
+            $this->assertEquals(
+                $new_article_type,
+                $fetched_object->getValue('type'),
+                'Value of fetched object must match expected one.'
             );
         }
     }
